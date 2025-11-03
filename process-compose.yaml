@@ -1,0 +1,40 @@
+vars:
+  projectname: bggapi
+environment:
+  - PGDATA=devsupport/db
+  - CANON_DOMAIN=localhost:3001
+  - SMTP_HOST=127.0.0.1
+  - SMTP_PORT=1025
+  # not to secure STMP,
+  # just to ensure smtp auth tested during dev
+  - SMTP_USERNAME=smtp_user
+  - SMTP_PASSWORD=smtp_password
+
+processes:
+  database:
+    command: devsupport/run_postgres.sh
+    ready_log_line: "ready to accept connections"
+    shutdown:
+      signal: 2 # SIGINT kills live clients and shuts down
+  database_setup:
+    command: devsupport/setup_postgres.sh
+    depends_on:
+      database:
+        condition: process_log_ready
+  backend:
+    environment:
+    - RUST_LOG=debug,sqlxmq=error,mio=error,h2=error
+    working_dir: backend/
+    command: watchexec --no-vcs-ignore --on-busy-update restart --watch target/debug/ --filter backend target/debug/backend
+    depends_on:
+      database_setup:
+        condition: process_completed_successfully
+    log_location: backend/dev-logs/backend.log
+    log_configuration:
+      disable_json: true
+      no_metadata: true
+      rotation:
+        max_size_mb: 5
+        max_backups: 2
+  env-check:
+    command: env | sort

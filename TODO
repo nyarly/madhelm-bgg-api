@@ -1,0 +1,24 @@
+* collect versions allong with items
+* expand links we collect
+* consider generic "links" table for "stub" links
+
+# XML2 endpoints:
+* search [we get everything]
+* thing [we get singles, no versions]
+* family
+* geeklist (not yet (RSN, 10 years on) in XML2)
+* collection (by user)
+* users
+* forum lists (by thing id)
+* forums (by list id)
+* threads (by thread id)
+* guilds
+* plays (user,item)
+* hot items
+
+# XML(i.e. old API) endpoints
+* search
+* game(s)
+* collection
+* messages from thread
+* geeklist
