@@ -9,7 +9,7 @@ use mattak::{
 };
 use biscuit_auth::macros::authorizer;
 use reqwest::{header, Certificate, Client, StatusCode};
-use resources::{search, thing};
+use resources::{api_doc, search, thing};
 use sqlx::{postgres::{PgConnectOptions, PgPoolOptions}, Pool, Postgres};
 use tracing::debug;
 use tracing_subscriber::{EnvFilter, prelude::*};
@@ -39,7 +39,10 @@ struct Config {
     bgg_api_token: String,
 
     #[arg(long, env = "BGG_SIMULTANEUS_REQUESTS", default_value = "10")]
-    bgg_simultaneus_requests: usize
+    bgg_simultaneus_requests: usize,
+
+    #[arg(long, env = "AUTH_MAP")]
+    auth_map: String
 }
 
 #[derive(Clone)]
@@ -57,7 +60,6 @@ struct AppState {
     client: Client,
     bgg_limit: BggLimit,
     key_map: KeyMap,
-    // auth: Authentication,
 }
 
 
@@ -100,7 +102,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .use_rustls_tls()
         .add_root_certificate(wtp_cert)
         .build()?;
-    let key_map = AuthorityMap::from([("localhost:3001", "localhost:4000")]).fetch_keys(key_client).await?;
+    let key_map = AuthorityMap::from(parse_auth_map(&config.auth_map)).fetch_keys(key_client).await?;
 
     debug!("{key_map:?}");
     let state = AppState{pool, client, bgg_limit, key_map: key_map.clone()};
@@ -118,8 +120,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     axum::serve(listener, app.into_make_service_with_connect_info::<SocketAddr>()).await?; Ok(())
 }
 
+fn parse_auth_map(cfg: &str) -> Vec<(&str, &str)> {
+    cfg.split(",").map(|mapping| {
+        let mut pair = mapping.splitn(2, "=");
+        let left = pair.next().expect("must have key");
+        let right = pair.next().expect("must have value");
+        (left,right)
+    }).collect()
+}
+
 fn root_api_router(extractor: IpExtractor, auth: KeyMap) -> Router<AppState> {
     Router::new()
+        .route(&api_doc::route(), get(api_doc::get))
         .route(&search::route(), get(search::get))
         .route(&thing::route(), get(thing::get))
         .layer(tower::ServiceBuilder::new()
