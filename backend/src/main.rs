@@ -9,7 +9,7 @@ use mattak::{
 };
 use biscuit_auth::macros::authorizer;
 use reqwest::{header, Certificate, Client, StatusCode};
-use resources::{api_doc, search, thing};
+use resources::{api_doc, branding, search, thing};
 use sqlx::{postgres::{PgConnectOptions, PgPoolOptions}, Pool, Postgres};
 use tracing::debug;
 use tracing_subscriber::{EnvFilter, prelude::*};
@@ -130,21 +130,32 @@ fn parse_auth_map(cfg: &str) -> Vec<(&str, &str)> {
 }
 
 fn root_api_router(extractor: IpExtractor, auth: KeyMap) -> Router<AppState> {
-    Router::new()
-        .route(&api_doc::route(), get(api_doc::get))
-        .route(&search::route(), get(search::get))
-        .route(&thing::route(), get(thing::get))
+    open_api_router()
+        .merge(authenticated_router(auth))
         .layer(tower::ServiceBuilder::new()
             .layer(ratelimiting::layer("api-root", extractor, GovernorConfigBuilder::default()
                 .per_millisecond(20)
                 .burst_size(60)
             ))
             .layer(CacheControlLayer::new(30))
+        )
+        // XXX key extractor that is either Authentication or SmartIp
+}
+
+fn open_api_router() -> Router<AppState> {
+    Router::new()
+        .route(&api_doc::route(), get(api_doc::get))
+        .route(&branding::list_route(), get(branding::get))
+        .nest_service(&branding::route(), branding::logos())
+}
+
+fn authenticated_router(auth: KeyMap) -> Router<AppState> {
+    Router::new()
+        .route(&search::route(), get(search::get))
+        .route(&thing::route(), get(thing::get))
             .layer(biscuits::middleware::setup(auth, "Authorization"))
             // .layer(middleware::from_fn_with_state(state, authentication::add_rejections))
             .layer(biscuits::middleware::check(authorizer!(r#"allow if user($user);"#)))
-        )
-        // XXX key extractor that is either Authentication or SmartIp
 }
 
 #[derive(thiserror::Error, Debug)]

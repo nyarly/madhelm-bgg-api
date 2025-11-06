@@ -25,6 +25,9 @@ pub(crate) async fn get(
 
     Ok((StatusCode::OK, Json(json!({
         "root": req.affordance("root", vec![op(View)]),
+        "logo_list": req
+            .default_relative_route::<resources::branding::Nick>("")
+            .affordance("list", vec![op(View)]),
         "search": req
             .default_relative_route::<resources::search::Nick>("")
             .affordance("search", vec![op(Find)]),
