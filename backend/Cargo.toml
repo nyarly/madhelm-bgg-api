@@ -26,3 +26,4 @@ tower = "0.5.2"
 biscuit-auth = "6.0.0"
 include_dir = { version = "0.7.4", features = ["metadata"] }
 tower-serve-static = { version = "0.1.1", features = ["metadata"] }
+tower-http = { version = "0.6.6", features = ["cors", "set-header", "trace"] }

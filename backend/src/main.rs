@@ -3,17 +3,15 @@ use std::{net::SocketAddr, num::ParseIntError, time::Duration};
 use axum::{extract, response::IntoResponse, routing::get, Router};
 use clap::Parser;
 use mattak::{
-    biscuits::{self, keysets::{AuthorityMap, KeyMap}},
-    cachecontrol::CacheControlLayer,
-    ratelimiting::{self, GovernorConfigBuilder, IpExtractor}
+    biscuits::{self, keysets::{AuthorityMap, KeyMap}}, cachecontrol::CacheControlLayer, ratelimiting::{self, GovernorConfigBuilder, IpExtractor}
 };
 use biscuit_auth::macros::authorizer;
-use reqwest::{header, Certificate, Client, StatusCode};
+use reqwest::{header, Certificate, Client, Method, StatusCode};
 use resources::{api_doc, branding, search, thing};
 use sqlx::{postgres::{PgConnectOptions, PgPoolOptions}, Pool, Postgres};
 use tracing::debug;
 use tracing_subscriber::{EnvFilter, prelude::*};
-
+use tower_http::{trace::TraceLayer, cors::CorsLayer};
 
 
 mod resources;
@@ -109,10 +107,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let rate_key = IpExtractor::trust(config.trust_forwarded_header);
 
+    let cors_origins = vec!["https://localhost:4000".parse().expect("parse origin")];
     let app = Router::new()
-        .nest("/api", root_api_router(rate_key, key_map));
+        .nest("/api", root_api_router(rate_key, key_map, cors_origins));
 
-    let app = app.with_state(state);
+    let app = app
+        .layer(TraceLayer::new_for_http())
+        .with_state(state);
 
     let listener = tokio::net::TcpListener::bind(config.local_addr.to_string()).await.expect("couldn't bind on local addr");
     tracing::debug!("listening on {}", listener.local_addr().unwrap());
@@ -129,10 +130,18 @@ fn parse_auth_map(cfg: &str) -> Vec<(&str, &str)> {
     }).collect()
 }
 
-fn root_api_router(extractor: IpExtractor, auth: KeyMap) -> Router<AppState> {
+fn root_api_router(extractor: IpExtractor, auth: KeyMap, origin_list: Vec<header::HeaderValue>) -> Router<AppState> {
+    let cors = CorsLayer::new()
+        // .max_age(Duration::from_secs(60))
+        .allow_credentials(true)
+        .allow_headers([header::AUTHORIZATION, header::ACCEPT])
+        .allow_methods([Method::GET])
+        .allow_origin(origin_list);
+
     open_api_router()
         .merge(authenticated_router(auth))
         .layer(tower::ServiceBuilder::new()
+            .layer(cors)
             .layer(ratelimiting::layer("api-root", extractor, GovernorConfigBuilder::default()
                 .per_millisecond(20)
                 .burst_size(60)
@@ -153,9 +162,11 @@ fn authenticated_router(auth: KeyMap) -> Router<AppState> {
     Router::new()
         .route(&search::route(), get(search::get))
         .route(&thing::route(), get(thing::get))
+        .layer(tower::ServiceBuilder::new()
             .layer(biscuits::middleware::setup(auth, "Authorization"))
             // .layer(middleware::from_fn_with_state(state, authentication::add_rejections))
             .layer(biscuits::middleware::check(authorizer!(r#"allow if user($user);"#)))
+        )
 }
 
 #[derive(thiserror::Error, Debug)]

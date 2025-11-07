@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use mattak::routing::{extract::{ExtractedRoute as _, NestedRoute}, Route as _};
 use axum::{debug_handler, extract::State, response::IntoResponse, Json};
 use mattak::hypermedia::{op, ActionType, ResourceFields};
@@ -14,11 +12,9 @@ use crate::{
 
 
 #[derive(Route, Clone, Default, Serialize, Deserialize)]
-#[template("/search{?query,extra*}")]
+#[template("/search{?query}")]
 pub(crate) struct Nick {
     query: String,
-    #[assoc]
-    extra: HashMap<String,String>
 }
 
 pub(crate) fn route() -> String {

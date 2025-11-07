@@ -24,7 +24,7 @@ processes:
         condition: process_log_ready
   backend:
     environment:
-    - RUST_LOG=debug,sqlxmq=error,mio=error,h2=error
+      - RUST_LOG=trace,sqlxmq=error,mio=error,h2=error,mattak::ratelimiting=error
     working_dir: backend/
     command: watchexec --no-vcs-ignore --on-busy-update restart --watch target/debug/ --filter backend target/debug/backend
     depends_on:
