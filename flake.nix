@@ -3,7 +3,7 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
     # Until https://github.com/NixOS/nixpkgs/pull/414495
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+    #nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     mkElmDerivation.url = "github:jeslie0/mkElmDerivation";
   };
@@ -11,7 +11,7 @@
     {
       self,
       nixpkgs,
-      nixpkgs-unstable,
+      # nixpkgs-unstable,
       flake-utils,
       mkElmDerivation,
     }:
@@ -92,16 +92,6 @@
             config = import nix/backend/config.nix params;
           };
         devShells.default =
-          let
-            unstable-pkgs = (
-              import nixpkgs-unstable {
-                overlays = [ mkElmDerivation.overlays.mkElmDerivation ];
-                inherit system;
-              }
-            );
-
-            elm-pkgs = unstable-pkgs.elmPackages;
-          in
           # if you don't what to use Nix, here are the dependencies you need:
           pkgs.mkShell {
             buildInputs =
@@ -112,16 +102,6 @@
                 rustc
                 rust-analyzer
                 clippy
-
-                nodejs_latest
-                elm-pkgs.elm
-                elm-pkgs.elm-test-rs
-                elm-pkgs.elm-live
-                elm-pkgs.elm-review
-                elm-pkgs.elm-format
-                elm-pkgs.elm-doc-preview
-                lightningcss
-                elm2nix
 
                 process-compose
                 watchexec
