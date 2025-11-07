@@ -49,11 +49,13 @@ pub(crate) struct BggThing<ID: IdForThing> {
 
 }
 
+/*
 impl<T: IdForThing> BggThing<T> {
     pub fn into_data(self) -> ThingData {
         self.data
     }
 }
+*/
 
 impl BggThing<NoId> {
 

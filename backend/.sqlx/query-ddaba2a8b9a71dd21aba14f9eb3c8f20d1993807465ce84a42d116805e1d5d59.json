@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "insert into thing_designer (\"thing_id\", \"designer_id\")\n  select $1, designer_id from unnest($2::integer[]) as a(designer_id)\n  on conflict do nothing\n",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int4Array"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ddaba2a8b9a71dd21aba14f9eb3c8f20d1993807465ce84a42d116805e1d5d59"
+}

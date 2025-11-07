@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "insert into bgg_family (\"bgg_id\", \"name\")\n   select bgg_id, name from unnest($1::text[], $2::text[]) as a(bgg_id, name)\n   on conflict do nothing\n   returning id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "TextArray",
+        "TextArray"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "63852eceb480352f73a4c86393b60cd53f12a3e7fc5e16bddb988144973c496c"
+}

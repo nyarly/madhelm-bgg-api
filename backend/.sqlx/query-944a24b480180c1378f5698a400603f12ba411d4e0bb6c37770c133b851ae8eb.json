@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "insert into thing_publisher (\"thing_id\", \"publisher_id\")\n  select $1, publisher_id from unnest($2::integer[]) as a(publisher_id)\n  on conflict do nothing\n",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int4Array"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "944a24b480180c1378f5698a400603f12ba411d4e0bb6c37770c133b851ae8eb"
+}

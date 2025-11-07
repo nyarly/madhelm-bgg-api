@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "insert into thing_family (\"thing_id\", \"family_id\")\n  select $1, family_id from unnest($2::integer[]) as a(family_id)\n  on conflict do nothing\n",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int4Array"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "a38e6531971399bbdd475da8e068b359c733f3fb6682a7adf959d4ab86494046"
+}

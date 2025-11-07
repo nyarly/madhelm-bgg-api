@@ -1,0 +1,33 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "insert into bgg_thing (\n    \"bgg_id\", \"kind\", \"name\", \"description\", \"thumbnail\", \"image\",\n    \"year_published\", \"min_players\", \"max_players\", \"min_duration\", \"max_duration\", \"duration\"\n    ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)\n    on conflict do nothing\n    returning id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "Int4",
+        "Int4",
+        "Int4",
+        "Int4",
+        "Int4",
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "a0cd3a0528356abfb53a21e3feac351881b57f13b28caf1c0964b446fa264efa"
+}
