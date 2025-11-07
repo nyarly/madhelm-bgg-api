@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-mattak = { version = "0.2.0", path = "../../mattak/mattak" }
-mattak_derives = { version = "0.2.0", path = "../../mattak/mattak_derives" }
+mattak = { version = "0.2.0" } #, path = "../../mattak/mattak" }
+mattak_derives = { version = "0.2.0" } #, path = "../../mattak/mattak_derives" }
 
 axum = { version = "< 0.8", features = ["macros", "json"] }
 axum-extra = { version = "0.10.1", features = ["query", "typed-header"] }
