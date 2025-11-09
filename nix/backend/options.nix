@@ -11,6 +11,7 @@ let
     port
     bool
     attrsOf
+    listOf
     nullOr
     package
     int
@@ -70,6 +71,16 @@ in
           };
         };
       };
+    };
+
+    authMap = mkOption {
+      description = "A mapping of our service domains to upstream authentication authorities";
+      type = attrsOf str str;
+    };
+
+    corsURLs = mkOption {
+      description = "A list of CORS allowed Origin URLs";
+      type = listOf str;
     };
 
     bggAPITokenPath = mkOption {

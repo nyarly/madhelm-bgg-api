@@ -38,6 +38,7 @@ lib.mkIf config.services.bgg-api.enable (
     systemd.services.bgg-api =
       let
         authMap = builtins.concatStringSep "," (lib.mapAttrsToList (n: v: "${n}=${v}") cfg.authMap);
+        corsOrigins = builtins.concatStringsSep "," cfg.corsURLs;
         preStart =
           (pkgs.writeShellScriptBin "bggapi-prestart"
             #bash
@@ -89,6 +90,7 @@ lib.mkIf config.services.bgg-api.enable (
           # BGG_API_TOKEN provided by start script via SOPS
           BGG_SIMULTANEUS_REQUESTS = cfg.bggSimultaneusRequests;
           AUTH_MAP = authMap;
+          CORS_ORIGINS = corsOrigins;
         }
         // cfg.extraEnvironment
         // maybeSMTPCert;
