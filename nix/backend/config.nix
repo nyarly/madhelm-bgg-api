@@ -81,7 +81,7 @@ lib.mkIf config.services.bgg-api.enable (
           # DATABASE_URL provided by start script via SOPS
           TRUST_FORWARDED_HEADER = lib.boolToString cfg.trustForwarded;
           # BGG_API_TOKEN provided by start script via SOPS
-          BGG_SIMULTANEUS_REQUESTS = cfg.bggSimultaneusRequests;
+          BGG_SIMULTANEUS_REQUESTS = builtins.toString cfg.bggSimultaneusRequests;
           AUTH_MAP = authMap;
           CORS_ORIGINS = corsOrigins;
         }
