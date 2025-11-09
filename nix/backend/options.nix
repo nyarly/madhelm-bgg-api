@@ -75,7 +75,7 @@ in
 
     authMap = mkOption {
       description = "A mapping of our service domains to upstream authentication authorities";
-      type = attrsOf str str;
+      type = attrsOf str;
     };
 
     corsURLs = mkOption {
