@@ -8,13 +8,6 @@ lib.mkIf config.services.bgg-api.enable (
   let
     cfg = config.services.bgg-api;
     package = cfg.package;
-    maybeSMTPCert =
-      if cfg.smtp.certPath != null then
-        {
-          SMTP_CERT = cfg.smtp.certPath;
-        }
-      else
-        { };
     dbPass = if cfg.database.passwordPath == null then "" else ":$(cat ${cfg.database.passwordPath})";
 
     dbURL = "export DATABASE_URL=postgres://${cfg.database.user}${dbPass}@${cfg.database.host}:${toString cfg.database.port}/${cfg.database.name}";
@@ -92,8 +85,7 @@ lib.mkIf config.services.bgg-api.enable (
           AUTH_MAP = authMap;
           CORS_ORIGINS = corsOrigins;
         }
-        // cfg.extraEnvironment
-        // maybeSMTPCert;
+        // cfg.extraEnvironment;
 
         script = ''
           ${dbURL}
