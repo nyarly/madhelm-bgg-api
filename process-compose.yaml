@@ -10,6 +10,7 @@ environment:
   - SMTP_USERNAME=smtp_user
   - SMTP_PASSWORD=smtp_password
   - AUTH_MAP=localhost:3001=localhost:4000
+  - CORS_ORIGINS=https://localhost:4000
 
 processes:
   database:
