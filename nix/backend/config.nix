@@ -30,7 +30,7 @@ lib.mkIf config.services.bgg-api.enable (
 
     systemd.services.bgg-api =
       let
-        authMap = builtins.concatStringSep "," (lib.mapAttrsToList (n: v: "${n}=${v}") cfg.authMap);
+        authMap = builtins.concatStringsSep "," (lib.mapAttrsToList (n: v: "${n}=${v}") cfg.authMap);
         corsOrigins = builtins.concatStringsSep "," cfg.corsURLs;
         preStart =
           (pkgs.writeShellScriptBin "bggapi-prestart"
