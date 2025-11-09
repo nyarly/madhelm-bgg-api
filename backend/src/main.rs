@@ -40,7 +40,11 @@ struct Config {
     bgg_simultaneus_requests: usize,
 
     #[arg(long, env = "AUTH_MAP")]
-    auth_map: String
+    auth_map: String,
+
+    #[arg(long, env = "CORS_ORIGINS")]
+    cors_origins: String
+
 }
 
 #[derive(Clone)]
@@ -107,9 +111,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let rate_key = IpExtractor::trust(config.trust_forwarded_header);
 
-    let cors_origins = vec!["https://localhost:4000".parse().expect("parse origin")];
     let app = Router::new()
-        .nest("/api", root_api_router(rate_key, key_map, cors_origins));
+        .nest("/api", root_api_router(rate_key, key_map, parse_cors_origins(&config.cors_origins)));
 
     let app = app
         .layer(TraceLayer::new_for_http())
@@ -127,6 +130,12 @@ fn parse_auth_map(cfg: &str) -> Vec<(&str, &str)> {
         let left = pair.next().expect("must have key");
         let right = pair.next().expect("must have value");
         (left,right)
+    }).collect()
+}
+
+fn parse_cors_origins(cfg: &str) -> Vec<header::HeaderValue> {
+    cfg.split(",").map(|origin| {
+        origin.parse().expect("parse origin")
     }).collect()
 }
 
