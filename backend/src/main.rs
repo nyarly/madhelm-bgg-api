@@ -157,11 +157,11 @@ fn root_api_router(extractor: IpExtractor, auth: KeyMap, origin_list: Vec<header
         .merge(authenticated_router(auth))
         .layer(tower::ServiceBuilder::new()
             .layer(cors)
-            .layer(ratelimiting::layer("api-root", extractor, GovernorConfigBuilder::default()
-                .per_millisecond(20)
-                .burst_size(60)
-            ))
             .layer(CacheControlLayer::new(30))
+            .layer(ratelimiting::layer("api-root", extractor, GovernorConfigBuilder::default()
+                .per_millisecond(200)
+                .burst_size(600)
+            ))
         )
         // XXX key extractor that is either Authentication or SmartIp
 }
