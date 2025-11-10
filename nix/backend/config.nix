@@ -41,7 +41,7 @@ lib.mkIf config.services.bgg-api.enable (
               ${pkgs.postgresql}/bin/psql -h ${cfg.database.host} -p ${toString cfg.database.port} -U postgres <<'SQL'
               do $$
               begin
-                create role ${cfg.database.user};
+                create role ${cfg.database.user} with login;
                 exception when duplicate_object then raise notice '%, skipping', sqlerrm using errcode = SQLSTATE;
               end
               $$;
