@@ -43,7 +43,10 @@ struct Config {
     auth_map: String,
 
     #[arg(long, env = "CORS_ORIGINS")]
-    cors_origins: String
+    cors_origins: String,
+
+    #[arg(long, env = "DEV_ROOT_CA_PATH")]
+    dev_ca_path: Option<String>
 
 }
 
@@ -97,13 +100,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let bgg_limit = BggLimit(config.bgg_simultaneus_requests);
 
-    let path = "../devsupport/tls/wtp/ca.crt.pem";
-    let data = std::fs::read(path)?;
-    let wtp_cert = Certificate::from_pem(&data)?;
-    let key_client = Client::builder()
-        .use_rustls_tls()
-        .add_root_certificate(wtp_cert)
-        .build()?;
+    let mut key_client_builder = Client::builder()
+        .use_rustls_tls();
+
+    if let Some(path) = config.dev_ca_path {
+        let data = std::fs::read(path)?;
+        let wtp_cert = Certificate::from_pem(&data)?;
+        key_client_builder = key_client_builder.add_root_certificate(wtp_cert)
+    }
+
+    let key_client = key_client_builder.build()?;
     let key_map = AuthorityMap::from(parse_auth_map(&config.auth_map)).fetch_keys(key_client).await?;
 
     debug!("{key_map:?}");
