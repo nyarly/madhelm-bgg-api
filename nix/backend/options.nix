@@ -24,6 +24,10 @@ in
       type = package;
       default = self-packages.bgg-api;
     };
+    migrationsPackage = mkOption {
+      type = package;
+      default = self-packages.bgg-api-migrations;
+    };
     user = mkOption {
       type = str;
       default = "bggapi";

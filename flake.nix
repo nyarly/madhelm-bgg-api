@@ -6,6 +6,10 @@
     #nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     mkElmDerivation.url = "github:jeslie0/mkElmDerivation";
+    crate2nix = {
+      url = "github:nix-community/crate2nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
   outputs =
     {
@@ -14,6 +18,7 @@
       # nixpkgs-unstable,
       flake-utils,
       mkElmDerivation,
+      crate2nix,
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
@@ -41,32 +46,21 @@
           let
             version = "0.1.0";
 
+            cargoNix = crate2nix.tools.${system}.appliedCargoNix {
+              name = "bgg-api";
+              src = ./backend;
+            };
+
           in
           {
-            bgg-api = pkgs.rustPlatform.buildRustPackage rec {
-              crateName = "bgg-api";
-
-              src = ./backend;
-
-              name = "${crateName}-${version}";
-
-              outputs = [
-                "out"
-                "migrations"
-              ];
-
-              cargoLock.lockFile = backend/Cargo.lock;
-
-              nativeBuildInputs = buildDeps;
-
-              buildInputs = buildDeps;
-
+            bgg-api = cargoNix.rootCrate.build.overrideAttrs (previousAttrs: {
               checkFlags = "--skip db::";
 
-              postInstall = ''
-                mkdir -p $migrations
-                cp migrations/* $migrations
-              '';
+              buildPhase = ''
+                export CARGO=${pkgs.cargo}/bin/cargo
+
+              ''
+              + previousAttrs.buildPhase;
 
               meta = with pkgs.lib; {
                 description = "A JSON API gateway for BGG";
@@ -78,8 +72,20 @@
                 license = licenses.mpl20;
                 maintainers = [ maintainers.nyarly ];
               };
+            });
+
+            bgg-api-migrations = pkgs.stdenv.mkDerivation {
+              pname = "bgg-api-migrations";
+              inherit version;
+              src = ./backend/migrations;
+
+              installPhase = ''
+                mkdir $out
+                cp -a * $out
+              '';
             };
           };
+
         nixosModules.bgg-api =
           {
             config,

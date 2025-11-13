@@ -8,6 +8,7 @@ lib.mkIf config.services.bgg-api.enable (
   let
     cfg = config.services.bgg-api;
     package = cfg.package;
+    migrationsPackage = cfg.migrationsPackage;
     dbPass = if cfg.database.passwordPath == null then "" else ":$(cat ${cfg.database.passwordPath})";
 
     dbURL = "export DATABASE_URL=postgres://${cfg.database.user}${dbPass}@${cfg.database.host}:${toString cfg.database.port}/${cfg.database.name}";
@@ -52,7 +53,7 @@ lib.mkIf config.services.bgg-api.enable (
               SQL
 
               ${dbURL}
-              ${pkgs.sqlx-cli}/bin/sqlx migrate run --source ${package.migrations}
+              ${pkgs.sqlx-cli}/bin/sqlx migrate run --source ${migrationsPackage}
             ''
           ).overrideAttrs
             (_: {
